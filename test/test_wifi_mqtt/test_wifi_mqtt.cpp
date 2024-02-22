@@ -20,12 +20,19 @@
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include <unity.h>
+#include <string.h>
 
 // Update these with values suitable for your network.
 
 const char *ssid = "theo";
 const char *password = "testWifi";
 const char *mqtt_server = "broker.emqx.io";
+const char *topicIn = "/YNOV_BDX/Theo/TestUnit";  // celui que l'on reçoit
+const char *topicOut = "/YNOV_BDX/Theo/TestUnit"; // celui que l'on envoie
+char *msgToSend = "test";                         // message à envoyer => modifiable dans le code
+char *topicReaded = "none";
+char *msgReaded = "none";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -34,14 +41,24 @@ unsigned long lastMsg = 0;
 char msg[MSG_BUFFER_SIZE];
 int value = 0;
 
+void setUp(void)
+{
+    // set stuff up here
+}
+
+void tearDown(void)
+{
+    // clean stuff up here
+}
+
 void setup_wifi()
 {
 
     delay(10);
     // We start by connecting to a WiFi network
-    Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(ssid);
+    UnityPrint("");
+    UnityPrint("Connecting to ");
+    UnityPrint(ssid);
 
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
@@ -62,12 +79,17 @@ void setup_wifi()
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
+    strcpy(topicReaded, topic);
+    TEST_MESSAGE(topicReaded);
+
     Serial.print("Message arrived [");
     Serial.print(topic);
     Serial.print("] ");
+
     for (int i = 0; i < length; i++)
     {
         Serial.print((char)payload[i]);
+        strcat(msgReaded, (char *)payload[i]);
     }
     Serial.println();
 
@@ -98,9 +120,9 @@ void reconnect()
         {
             Serial.println("connected");
             // Once connected, publish an announcement...
-            client.publish("/YNOV_BDX/Theo", "hello world");
+            client.publish(topicOut, "Début test envoie");
             // ... and resubscribe
-            client.subscribe("/YNOV_BDX/#");
+            client.subscribe(topicIn);
         }
         else
         {
@@ -113,13 +135,36 @@ void reconnect()
     }
 }
 
+// FONCTION TEST UNITAIRE
+
+void test_mqtt(void)
+{
+    // envoie de "test"
+    client.publish(topicOut, msgToSend);
+    // lecture, égal à true si = test
+    delay(2000);
+    bool result;
+    // verification du fonctionnement
+
+    if ((strcmp(topicReaded, topicIn) == 0) /*&& (strcmp(msgReaded, msgToSend) == 0)*/)
+    {
+        result = true;
+    }
+    else
+        result = false;
+    // verification test
+    TEST_ASSERT_EQUAL(true, result);
+}
+
 void setup()
 {
+    delay(2000);
     pinMode(BUILTIN_LED, OUTPUT); // Initialize the BUILTIN_LED pin as an output
     Serial.begin(115200);
     setup_wifi();
     client.setServer(mqtt_server, 1883);
     client.setCallback(callback);
+    UNITY_BEGIN();
 }
 
 void loop()
@@ -136,9 +181,10 @@ void loop()
     {
         lastMsg = now;
         ++value;
-        snprintf(msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
+        snprintf(msg, MSG_BUFFER_SIZE, "envoie #%ld", value);
         Serial.print("Publish message: ");
         Serial.println(msg);
-        client.publish("/YNOV_BDX/Theo", msg);
+        client.publish("/YNOV_BDX/Theo", msg); // Fonction qui envoie au MQTT
+        RUN_TEST(test_mqtt);
     }
 }
