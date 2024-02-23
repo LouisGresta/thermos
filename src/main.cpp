@@ -54,17 +54,19 @@ void setup() {
   time = millis() - time;
   delay(500);
   // Initialisation des différentes parties du système
+  #ifdef IHM
   LCDDisplay::setupLCD();
+  #endif
   #ifdef CAPTEUR
     DHTSensor::setupDHT();
   #endif
+
 }
 
 void loop() {
   // Boucle principale
   LCDDisplay::handleLCD();
 }
-
 
 void drawTextAt(int x, int y, const char* text, uint16_t color) {
   tft.setCursor(x,y);
