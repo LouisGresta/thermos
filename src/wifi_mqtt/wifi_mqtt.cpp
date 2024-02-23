@@ -7,8 +7,8 @@ const char *password = "MdpTresSafe01";
 // Mqtt connection
 const char *mqtt_server = "broker.emqx.io";
 const int mqtt_port = 1883;
-const char *topicIn = "/YNOV_BDX/Theo/TestUnit";  // celui que l'on reçoit
-const char *topicOut = "/YNOV_BDX/Theo/TestUnit"; // celui que l'on envoie
+const char *topicIn = "/YNOV_BDX/Projet_IoT/Capteurs/SOUK02";  // celui que l'on reçoit
+const char *topicOut = "/YNOV_BDX/Projet_IoT/Capteurs/SOUK01"; // celui que l'on envoie
 char *msgToSend = "test";                         // message à envoyer => modifiable dans le code
 char *topicReaded = "none";
 char *msgReaded = "none";

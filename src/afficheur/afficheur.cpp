@@ -1,4 +1,30 @@
+#ifdef IHM        
+  #include "afficheur.h"
 
+  LiquidCrystal_I2C LCD(LCD_ADDRESS,LCD_COLUMNS,LCD_ROWS);
+
+  void setupLCD() {
+  LCD.init();
+  LCD.backlight();
+  LCD.begin(LCD_COLUMNS, LCD_ROWS);
+  LCD.clear();
+  LCD.setCursor(0, 0);
+  LCD.print("<");
+  LCD.setCursor(4, 0);
+  LCD.print("Capteur1");
+  LCD.setCursor(15, 0);
+  LCD.print(">");
+  LCD.setCursor(0, 1);
+  LCD.print("T:  C   H:  %");
+  }
+
+  void displayMessage(const char* message) {
+
+  LCD.setCursor(0,0);
+  LCD.print(message);
+
+        }
+#endif
 #ifdef OLED
 void setupTFT(Adafruit_SSD1351 tft)
 {

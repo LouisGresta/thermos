@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include "wifi_mqtt/wifi_mqtt.h"
+#ifdef IHM        
+#include "afficheur/afficheur.h"
+#endif
 
 extern PubSubClient client;
 extern const char *topicOut;
@@ -14,6 +17,7 @@ void callback(char *topic, byte *payload, unsigned int length);
 
 void setup() {
   Serial.begin(115200);
+  setupLCD();
 
   uint16_t time = millis();
   time = millis() - time;
@@ -71,5 +75,9 @@ void callback(char *topic, byte *payload, unsigned int length)
   {
     digitalWrite(LED_BUILTIN, HIGH); // Turn the LED off by making the voltage HIGH
   }
+  #ifdef IHM
+    Serial.println("Hello");
+    displayMessage("Bonjour");
+  #endif
 }
 
