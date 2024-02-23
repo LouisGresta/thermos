@@ -21,24 +21,24 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <string.h>
+#include <Arduino.h>
+#include "joystick.h"
+#include <Wire.h>
 
 // Update these with values suitable for your network.
 
-const char *ssid = "theo";
-const char *password = "testWifi";
+const char *ssid = "Projet_IoT";
+const char *password = "MdpTresSafe01";
 const char *mqtt_server = "broker.emqx.io";
-const char *topicIn = "/YNOV_BDX/Theo/TestUnit";  // celui que l'on reçoit
-const char *topicOut = "/YNOV_BDX/Theo/TestUnit"; // celui que l'on envoie
-char *msgToSend = "test";                         // message à envoyer => modifiable dans le code
-char *topicReaded = "none";
-char *msgReaded = "none";
+const char *topicIn = "/YNOV_BDX/Theo/TestJ";  // celui que l'on reçoit
+const char *topicOut = "/YNOV_BDX/Theo/TestJ"; // celui que l'on envoie
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
 char msg[MSG_BUFFER_SIZE];
-int value = 0;
+int value_m = 0;
 
 void setUp(void)
 {
@@ -78,8 +78,8 @@ void setup_wifi()
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
-//  strcpy(topicReaded, topic);
-//  Serial.println(topicReaded);
+  //  strcpy(topicReaded, topic);
+  //  Serial.println(topicReaded);
 
   Serial.print("Message arrived [");
   Serial.print(topic);
@@ -88,7 +88,7 @@ void callback(char *topic, byte *payload, unsigned int length)
   for (int i = 0; i < length; i++)
   {
     Serial.print((char)payload[i]);
-//    strcat(msgReaded, (char *)payload[i]);
+    //    strcat(msgReaded, (char *)payload[i]);
   }
   Serial.println();
 
@@ -136,6 +136,7 @@ void reconnect()
 
 void setup()
 {
+  setupJoystick();
   delay(2000);
   pinMode(LED_BUILTIN, OUTPUT); // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
@@ -157,10 +158,16 @@ void loop()
   if (now - lastMsg > 2000)
   {
     lastMsg = now;
-    ++value;
-    snprintf(msg, MSG_BUFFER_SIZE, "envoie #%ld", value);
-    Serial.print("Publish message: ");
-    Serial.println(msg);
+    ++value_m;
+    snprintf(msg, MSG_BUFFER_SIZE, "value : %d", ReturnDirection());
+    Serial.print("Publish message:");
+    bool valeur = ReadClick();
+    Serial.println(valeur);
+    if (valeur == true) // il y a eu un appuie
+    {
+      client.publish(topicOut, "il y a eu un appuie"); // Fonction qui envoie au MQTT
+    }
+
     client.publish(topicOut, msg); // Fonction qui envoie au MQTT
   }
 }
