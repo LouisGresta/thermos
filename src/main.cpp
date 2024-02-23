@@ -5,6 +5,8 @@
 #include <ESP8266WiFi.h> //Importe cette librairie
 #include <SPI.h>
 
+#include <string.h>
+
 #include <Servo.h> //Servo motor
 Servo myservo;
 
@@ -24,6 +26,9 @@ char mqtt_server[] = "broker.emqx.io";  //adresse IP serveur/127.0.0.1
 //char Topic_MQTT [] = "/YNOV_BDX/Ib"; //le nom du topic
 #define Topic_Hum_MQTT "/YNOV_BDX/Dh11-Hum"
 #define Topic_Temp_MQTT "/YNOV_BDX/Dh11-Temp"
+#define Topic_Serv_MQTT "/YNOV_BDX/servo"
+#define SEUIL_TEMP   40
+
 
 WiFiClient espClient;
 PubSubClient MQTTclient(espClient);
@@ -54,7 +59,7 @@ void MQTTconnect()
       Serial.println("\nMQTT connected\n");
 
       //Permet d'écouter le topic, afin de récupérer ces informations.
-      MQTTclient.subscribe(Topic_Temp_MQTT);
+      //MQTTclient.subscribe(Topic_Temp_MQTT);
       MQTTclient.subscribe(Topic_Hum_MQTT);
       MQTTclient.subscribe("/YNOV_BDX/servo");
     } 
@@ -77,12 +82,12 @@ void MQTTsend()
   float TabCpt_Temp = CptTempHum(DHT_SENSOR_PIN, 1);
   float TabCpt_Hum = CptTempHum(DHT_SENSOR_PIN, 0);
 
-  String reponseT = (String)TabCpt_Temp;
-  MQTTclient.publish(Topic_Temp_MQTT, reponseT.c_str());
+ // String reponseT = (String)TabCpt_Temp;
+  //MQTTclient.publish(Topic_Temp_MQTT, reponseT.c_str());
   //Le premier paramètre est le Topic, second message a publier
 
   String reponseH = (String)TabCpt_Hum;
-  MQTTclient.publish(Topic_Hum_MQTT, reponseH.c_str());
+ MQTTclient.publish(Topic_Hum_MQTT, reponseH.c_str());
   //Le premier paramètre est le Topic, second message a publier
 }
 
@@ -99,12 +104,66 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length)
 
   Serial.println("message reçu : "+s);
 
-  if ( topic == "/YNOV_BDX/servo"){
-    int status = string1.toInt();
+  Serial.print("topic : ");
+  Serial.println(topic);
+  Serial.print("\n");
+
+  // if ( topic == Topic_Serv_MQTT)
+  // {
+  //   Serial.print("oooooooooooooooookk : ");
+  //   Serial.println(s);
+  //   delay(200);
+  // }
+
+  int ret = strcmp(topic,"/YNOV_BDX/servo" );
+
+  int humidity =  strcmp(topic,Topic_Hum_MQTT );
+  Serial.print("ret : ");
+  Serial.println(ret);
+
+  Serial.print("humidity--------- : ");
+  Serial.println(humidity);
+
+  if ( ret == 0){
+
+    int status = s.toInt();
     int pos = map(status, 1, 100, 0, 180);
+
+    Serial.print("Pos : ");
     Serial.println(pos);
     myservo.write(pos);
     delay(10);
+  }
+  
+  if (humidity == 0){
+    int status = s.toInt();
+    int pos = 180;
+    //Serial.print("humidity seuil-------- : ");
+    //map(status, 1, 100, 0, 180);
+    if (status >= SEUIL_TEMP)
+    {
+      Serial.print("humidity seuil : ");
+      Serial.println(pos);
+
+      String reponseP = (String)pos;
+      MQTTclient.publish(Topic_Serv_MQTT, reponseP.c_str());
+
+      myservo.write(pos);
+      delay(10);
+    }
+    else if(status <= SEUIL_TEMP)
+    {
+      pos = 0;
+
+      Serial.print("humidity seuil : ");
+      Serial.println(pos);
+      myservo.write(pos);
+
+      delay(10);
+
+      String reponseP = (String)pos;
+      MQTTclient.publish(Topic_Serv_MQTT, reponseP.c_str());
+    }
   }
 }
 
@@ -121,8 +180,8 @@ void setup() {
   MQTTclient.setCallback(MQTTcallback);
 
   // Servomottor setup 
-    myservo.attach(13);
-    myservo.write(0);
+  myservo.attach(5);
+  myservo.write(0);
 }
 
 void loop() {
