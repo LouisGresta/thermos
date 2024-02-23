@@ -1,18 +1,23 @@
-#include <Arduino.h>
-
-// put function declarations here:
-int myFunction(int, int);
+#include "WiFiConnection.h"
+#include "MQTTConnection.h"
+#ifdef IHM
+#include "LCDDisplay.h"
+#endif
+#ifdef CAPTEUR
+#include "DHTSensor.h"
+#endif
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  // Initialisation des différentes parties du système
+  WiFiConnection::setupWiFi();
+  MQTTConnection::setupMQTT();
+  LCDDisplay::setupLCD();
+  DHTSensor::setupDHT();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  // Boucle principale
+  WiFiConnection::handleWiFi();
+  MQTTConnection::handleMQTT();
+  LCDDisplay::handleLCD();
 }
