@@ -115,7 +115,7 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length)
   //   delay(200);
   // }
 
-  int ret = strcmp(topic,"/YNOV_BDX/servo" );
+  /*int ret = strcmp(topic,"/YNOV_BDX/servo" );
 
   int humidity =  strcmp(topic,Topic_Hum_MQTT );
   Serial.print("ret : ");
@@ -133,9 +133,18 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length)
     Serial.println(pos);
     myservo.write(pos);
     delay(10);
-  }
+  }*/
+
+  int positinS = servoMoteur(topic, Topic_Hum_MQTT, s);
+
+  Serial.print("Position : ");
+  Serial.println(positinS);
+
+  String reponseP = (String)positinS;
+  MQTTclient.publish(Topic_Serv_MQTT, reponseP.c_str());
+  delay(200);
   
-  if (humidity == 0){
+ /* if (humidity == 0){
     int status = s.toInt();
     int pos = 180;
     //Serial.print("humidity seuil-------- : ");
@@ -164,7 +173,7 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length)
       String reponseP = (String)pos;
       MQTTclient.publish(Topic_Serv_MQTT, reponseP.c_str());
     }
-  }
+  }*/
 }
 
 void setup() {

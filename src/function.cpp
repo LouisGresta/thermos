@@ -7,6 +7,10 @@
 #include <DHTesp.h>  //Librairie du Capteur temp DHT11
 #define DHT_SENSOR_TYPE DHT11
 
+#include <Servo.h> //Servo motor
+
+#define SEUIL_TEMP 40
+
 
 //WiFiClient espClient;
 //PubSubClient MQTTclient(espClient);
@@ -154,4 +158,46 @@ float CptTempHum(int Pin, int index)
   Serial.println(buffer[0]);
 
   return buffer[index];
+}
+
+int servoMoteur(const char* topic, const char* Topic_C, String s )
+{
+  Servo myservo;
+ 
+  int humidity =  strcmp(topic, Topic_C);
+
+  Serial.print("humidity--------- : ");
+  Serial.println(humidity);
+  int pos = 180;
+
+
+  if (humidity == 0){
+    int status = s.toInt();
+    
+    //Serial.print("humidity seuil-------- : ");
+    //map(status, 1, 100, 0, 180);
+    if (status >= SEUIL_TEMP)
+    {
+      Serial.print("humidity seuil : ");
+      Serial.println(pos);
+
+      String reponseP = (String)pos;
+
+      myservo.write(pos);
+      //delay(10);
+    }
+    else if(status <= SEUIL_TEMP)
+    {
+      pos = 0;
+
+      Serial.print("humidity seuil : ");
+      Serial.println(pos);
+      myservo.write(pos);
+
+      delay(10);
+    }
+
+  }
+
+  return pos;
 }
