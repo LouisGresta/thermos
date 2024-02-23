@@ -1,7 +1,13 @@
 #include <Arduino.h>
+#include <PubSubClient.h>
+#ifdef IHM
+#include "LCDDisplay.h"
 #include <Wire.h>
 #include <Adafruit_SSD1351.h>
-#include <PubSubClient.h>
+#endif
+#ifdef CAPTEUR
+#include "DHTSensor.h"
+#endif
 
 // WiFi credentials
 const char* ssid = "your-ssid";
@@ -14,7 +20,7 @@ const char* password = "your-password";
 #define	GREEN           0x07E0
 #define CYAN            0x07FF
 #define MAGENTA         0xF81F
-#define YELLOW          0xFFE0  
+#define YELLOW          0xFFE0
 #define WHITE           0xFFFF
 
 // Screen dimensions
@@ -47,11 +53,18 @@ void setup() {
   uint16_t time = millis();
   time = millis() - time;
   delay(500);
+  // Initialisation des différentes parties du système
+  LCDDisplay::setupLCD();
+  #ifdef CAPTEUR
+    DHTSensor::setupDHT();
+  #endif
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // Boucle principale
+  LCDDisplay::handleLCD();
 }
+
 
 void drawTextAt(int x, int y, const char* text, uint16_t color) {
   tft.setCursor(x,y);
