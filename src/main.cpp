@@ -1,10 +1,6 @@
 #include <Arduino.h>
 #include "wifi_mqtt/wifi_mqtt.h"
 
-extern PubSubClient client;
-extern const char *topicOut;
-extern const char *topicIn;
-
 unsigned long lastMsg = 0;
 char msg[MSG_BUFFER_SIZE];
 int value = 0;

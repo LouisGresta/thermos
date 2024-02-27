@@ -1,11 +1,9 @@
 #ifndef AFFICHEUR_H
 #define AFFICHEUR_H
 
-#ifdef LCD
-
-#endif
-
 #ifdef OLED
+#include <Adafruit_SSD1351.h>
+
 // Color definitions
 #define	BLACK           0x0000
 #define	BLUE            0x001F
