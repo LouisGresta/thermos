@@ -7,10 +7,6 @@
 #define IN2 D5
 
 
-#define ENA D7
-#define IN1 D6
-#define IN2 D5
-
 #define ssid = "Galaxy S22 UltraDC7F"
 #define password = "oyyy2060"
 #define  mqtt_server = "broker.emqx.io"
