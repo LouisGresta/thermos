@@ -1,9 +1,16 @@
-
+#include "afficheur.h"
 #ifdef OLED
-void setupTFT(Adafruit_SSD1351 tft)
+
+// Create the SSD1351 display
+Adafruit_SSD1351 tft = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, CS_PIN, DC_PIN, MOSI_PIN, SCLK_PIN, RST_PIN);
+
+void setupTFT()
 {
   tft.begin();
   tft.fillScreen(BLACK);
+  tft.setCursor(0, 0);
+  tft.setTextColor(WHITE);
+  tft.setTextSize(1);
 }
 void drawTextAt(int x, int y, const char *text, uint16_t color)
 {

@@ -4,7 +4,7 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-#define MSG_BUFFER_SIZE (50)
+#define MSG_BUFFER_SIZE (100)
 
 extern PubSubClient client;
 extern const char *topicOut;

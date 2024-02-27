@@ -25,11 +25,10 @@
 #define CS_PIN   14
 #define RST_PIN  12
 
-// Create the SSD1351 display
-Adafruit_SSD1351 tft = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, CS_PIN, DC_PIN, MOSI_PIN, SCLK_PIN, RST_PIN);
+extern Adafruit_SSD1351 tft;
 
 // Function prototypes
-void setupTFT(Adafruit_SSD1351 tft);
+void setupTFT();
 void drawTextAt(int x, int y, const char *text, uint16_t color);
 void testlines(uint16_t color);
 void tftPrintTest();

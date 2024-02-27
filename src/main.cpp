@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include "wifi_mqtt/wifi_mqtt.h"
+#ifdef OLED
+#include "afficheur/afficheur.h"
+#endif
 
 unsigned long lastMsg = 0;
 char msg[MSG_BUFFER_SIZE];
@@ -7,6 +10,7 @@ int value = 0;
 
 // Function prototypes
 void callback(char *topic, byte *payload, unsigned int length);
+void clearMsg(int start = 0, int size = MSG_BUFFER_SIZE);
 
 void setup() {
   Serial.begin(115200);
@@ -15,10 +19,12 @@ void setup() {
   time = millis() - time;
   delay(500);
   
-  pinMode(LED_BUILTIN, OUTPUT); // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
   setup_wifi();
   setup_mqtt(callback);
+  #ifdef OLED
+  setupTFT();
+  #endif
 }
 
 void loop() {
@@ -31,41 +37,43 @@ void loop() {
   unsigned long now = millis();
   if (now - lastMsg > 2000)
   {
-    lastMsg = now;
-    ++value;
-    snprintf(msg, MSG_BUFFER_SIZE, "envoie #%ld", value);
-    Serial.print("Publish message: ");
-    Serial.println(msg);
-    client.publish(topicOut, msg); // Fonction qui envoie au MQTT
+    // lastMsg = now;
+    // ++value;
+    // snprintf(msg, MSG_BUFFER_SIZE, "envoie #%ld", value);
+    // Serial.print("Publish message: ");
+    // Serial.println(msg);
+    // client.publish(topicOut, msg); // Fonction qui envoie au MQTT
   }
 }
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
-//  strcpy(topicReaded, topic);
-//  Serial.println(topicReaded);
-
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
-
-  for (int i = 0; i < length; i++)
+  for (unsigned int i = 0; i < length; i++)
   {
     Serial.print((char)payload[i]);
-//    strcat(msgReaded, (char *)payload[i]);
   }
   Serial.println();
 
-  // Switch on the LED if an 1 was received as first character
-  if ((char)payload[0] == '1')
+  #ifdef OLED
+  // Print message on OLED Screen
+  tft.fillScreen(BLACK);
+  delay(500); // le temps que l'écran se vide
+  snprintf(msg, MSG_BUFFER_SIZE, "%s", (char *) payload);
+  Serial.print("Message printed on OLED : ");
+  Serial.println(msg);
+  clearMsg(length);
+  drawTextAt(0, 0, msg, WHITE);
+  #endif
+}
+
+void clearMsg(int start, int size)
+{
+  for (int i = start; i < MSG_BUFFER_SIZE; i++)
   {
-    digitalWrite(LED_BUILTIN, LOW); // Turn the LED on (Note that LOW is the voltage level
-                                    // but actually the LED is on; this is because
-                                    // it is active low on the ESP-01)
-  }
-  else
-  {
-    digitalWrite(LED_BUILTIN, HIGH); // Turn the LED off by making the voltage HIGH
+    msg[i] = '\0';
   }
 }
 
