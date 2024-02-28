@@ -14,9 +14,17 @@ void setupTFT()
 }
 void drawTextAt(int x, int y, const char *text, uint16_t color)
 {
-    tft.setCursor(x, y);
-    tft.setTextColor(color);
-    tft.print(text);
+  if (x < 0 || x >= SCREEN_WIDTH) return;
+  if (y < 0 || y >= NB_LINES) return;
+  tft.setCursor(x, y * CHAR_HEIGHT);
+  tft.setTextColor(color);
+  tft.print(text);
+}
+
+void clearLine(int y, int charHeight)
+{
+  if (y < 0 || y >= NB_LINES) return;
+  tft.fillRect(0, y * CHAR_HEIGHT, SCREEN_WIDTH, charHeight, BLACK);
 }
 
 void tftPrintTest() {

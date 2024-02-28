@@ -29,7 +29,7 @@ int ReadValueJoystick()
 
 short int ReturnDirection()
 {
-    short int direction = 1; // 0 = gauche, 1 = milieu , 2 = droite
+    short int direction = 1;
     if (ReadValueJoystick() <= 200)
         direction = 0;
     else if (ReadValueJoystick() >= 800)

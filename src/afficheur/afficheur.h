@@ -18,6 +18,12 @@
 #define SCREEN_WIDTH  128
 #define SCREEN_HEIGHT 128
 
+// Text dimensions
+#define CHAR_WIDTH 6
+#define CHAR_HEIGHT 8
+#define NB_CHARS SCREEN_WIDTH / CHAR_WIDTH
+#define NB_LINES SCREEN_HEIGHT / CHAR_HEIGHT
+
 // Pin definitions
 #define SCLK_PIN 4
 #define MOSI_PIN 0
@@ -30,6 +36,7 @@ extern Adafruit_SSD1351 tft;
 // Function prototypes
 void setupTFT();
 void drawTextAt(int x, int y, const char *text, uint16_t color);
+void clearLine(int y, int charHeight = CHAR_HEIGHT);
 void testlines(uint16_t color);
 void tftPrintTest();
 #endif
