@@ -11,6 +11,7 @@
 int nbCapteurs = 0;
 int currentCapteurIndex = 0;
 bool isCapteurSelected = false;
+int addedCapteurNotificationTime = 0;
 
 unsigned long lastMsg = 0;
 char msg[MSG_BUFFER_SIZE];
@@ -49,10 +50,12 @@ void setup() {
   setup_mqtt(callback);
   #ifdef IHM
   setupJoystick();
-  setupCapteursList(capteurs);
-  #endif
+  // setupCapteursList(capteurs);
+  Serial.println("Aucun capteur connecté");
   #ifdef OLED
   setupTFT();
+  drawTextAt(0, 0, "No connected captors", WHITE);
+  #endif
   #endif
 }
 
@@ -62,30 +65,45 @@ void loop() {
     reconnect();
   }
   client.loop();
+
   #ifdef IHM
-  changeCapteurIfNecessary();
 
   if (!isCapteurSelected && ReadClick())
   {
+    // Sélection du capteur
     Serial.println("Capteur sélectionné !");
     isCapteurSelected = !isCapteurSelected;
   }
   if (isCapteurSelected)
   {
+    // Capteur sélectionné
     changeSeuilValueIfNecessary();
     flashSeuil();
     if (ReadClick())
     {
-      // Send new seuil to MQTT
+      // Désélection du capteur et envoie mqtt du nouveau seuil sur le topic du capteur
+      Serial.println("Capteur désélectionné !");
       clearMsg(msg);
-      snprintf(msg, NB_CHARS, "%lf", capteurs[currentCapteurIndex].seuil);
-      client.publish("/YNOV_BDX/Projet_IoT/Capteurs/seuil", msg);
-      // unselect capteur and print it
+      snprintf(msg, NB_CHARS, "%f", capteurs[currentCapteurIndex].seuil);
+      char topic[MSG_BUFFER_SIZE] = "/YNOV_BDX/Projet_IoT/Capteurs/";
+      strcat(topic, capteurs[currentCapteurIndex].name);
+      strcat(topic, "/seuil");
+      client.publish(topic, msg);
       isCapteurSelected = !isCapteurSelected;
       printCapteur(capteurs[currentCapteurIndex]);
     }
   }
-  
+  else if (nbCapteurs > 0)
+  {
+    // Capteur non sélectionné
+    changeCapteurIfNecessary();
+  }
+  // Clear notification after 3 second
+  if (millis() - addedCapteurNotificationTime > 3000) {
+    clearLine(9);
+    clearLine(10);
+  }
+  delay(100);
   #endif
 }
 
@@ -100,30 +118,36 @@ void callback(char *topic, byte *payload, unsigned int length)
   }
   Serial.println();
 
-  #ifdef OLED
-  if (strcmp(topic, "/YNOV_BDX/Projet_IoT/Afficheur/temperature") == 0)
+  #ifdef IHM
+  if (strstr(topic, "/YNOV_BDX/Projet_IoT/Capteurs/") != NULL && strstr(topic, "/mesure") != NULL)
   {
-    // Remove previous temperature on screen
-    clearLine(2);
-    delay(100);
-    // Print message on screen
-    snprintf(msg, MSG_BUFFER_SIZE, "Temperature : %s", (char *) payload);
-    clearMsg(msg, length + 14); // 14 = length of "Temperature : "
-    
-    drawTextAt(0, 2, msg, WHITE);
+    char *capteurName = strstr(topic, "/YNOV_BDX/Projet_IoT/Capteurs/") + 30;
+    strcpy(capteurName, strtok(capteurName, "/")); // remove what's after the captor name
+    char *temperature = (char *)payload;
+    char *humidity = (char *)payload + 5;
+    // Check if captor already exists
+    bool capteurExists = false;
+    for (int i = 0; i < nbCapteurs; i++)
+    {
+      if (strcmp(capteurName, capteurs[i].name) == 0)
+      {
+        capteurs[i].temperature = atof(temperature);
+        capteurs[i].humidity = atof(humidity);
+        printCapteur(capteurs[i]);
+        capteurExists = true;
+      }
+    }
+    // Add captor if it doesn't exist
+    if (!capteurExists)
+    {
+      addCapteur(capteurName, atof(temperature), atof(humidity));
+      // Print first capteur on screen
+      if (nbCapteurs == 1)
+      {
+        printCapteur(capteurs[0]);
+      }
+    }
   }
-  if (strcmp(topic, "/YNOV_BDX/Projet_IoT/Afficheur/humidite") == 0)
-  {
-    // Remove previous humidity on screen
-    clearLine(3);
-    delay(100);
-    // Print message on screen
-    snprintf(msg, MSG_BUFFER_SIZE, "Humidite : %s", (char *) payload);
-    clearMsg(msg, length + 11); // 11 = length of "Humidite : "
-    drawTextAt(0, 3, msg, WHITE);
-  }
-
-
   #endif
 }
 
@@ -139,17 +163,23 @@ void setupCapteursList(CapteurData *capteurs)
 {
   for (int i = 0; i < NB_MAX_CAPTEURS; i++)
   {
-    char *name = (char *)malloc(NB_CHARS * sizeof(char));
-    snprintf(name, NB_CHARS, "Capteur %d", i + 1);
-    strcpy(capteurs[i].name, name);
-    capteurs[i].temperature = 0;
-    capteurs[i].humidity = 0;
-    capteurs[i].seuil = 0;
+    char name[NB_CHARS] = "Capteur ";
+    name[8] = i+1 + 48;
+    addCapteur(name, 0, 0);
+    Serial.print("Capteur : ");
+    Serial.print(capteurs[i].name);
+    Serial.print(" Temperature : ");
+    Serial.print(capteurs[i].temperature);
+    Serial.print(" Humidite : ");
+    Serial.println(capteurs[i].humidity);
   }
+  nbCapteurs = NB_MAX_CAPTEURS;
 }
 
 void addCapteur(char *name, float temperature, float humidity)
 {
+  Serial.print("Ajout du capteur : ");
+  Serial.println(name);
   if (nbCapteurs >= NB_MAX_CAPTEURS)
   {
     Serial.println("Nombre de capteurs maximum atteint");
@@ -160,6 +190,12 @@ void addCapteur(char *name, float temperature, float humidity)
   capteurs[nbCapteurs].temperature = temperature;
   capteurs[nbCapteurs].humidity = humidity;
   nbCapteurs++;
+  // Print notification on screen
+  clearLine(9);
+  clearLine(10);
+  drawTextAt(0, 9, name, WHITE);
+  drawTextAt(0, 10, "est connecte", WHITE);
+  addedCapteurNotificationTime = millis();
 }
 
 void printCapteur(CapteurData capteur)
@@ -176,13 +212,13 @@ void printCapteur(CapteurData capteur)
   // Print capteur on screen
   drawTextAt(0, 0, capteur.name, WHITE);
   clearMsg(msg);
-  snprintf(msg, NB_CHARS, "Temperature : %lf", capteur.temperature);
+  snprintf(msg, NB_CHARS, "Temperature : %f", capteur.temperature);
   drawTextAt(0, 2, msg, WHITE);
   clearMsg(msg);
-  snprintf(msg, NB_CHARS, "Humidite : %lf", capteur.humidity);
+  snprintf(msg, NB_CHARS, "Humidite    : %f", capteur.humidity);
   drawTextAt(0, 3, msg, WHITE);
   clearMsg(msg);
-  snprintf(msg, NB_CHARS, "Seuil : %lf", capteur.seuil);
+  snprintf(msg, NB_CHARS, "Seuil : %f", capteur.seuil);
   drawTextAt(0, 6, msg, WHITE);
 }
 
@@ -192,14 +228,14 @@ void printSeuil(float seuil, uint16_t color = WHITE)
   clearMsg(msg);
   if (color == WHITE)
   {
-    tft.setTextColor(BLACK);
+    tft.fillRect(0, 6 * CHAR_HEIGHT, SCREEN_WIDTH, CHAR_HEIGHT, BLACK);
   }
   else
   {
-    tft.setTextColor(WHITE);
+    tft.fillRect(0, 6 * CHAR_HEIGHT, SCREEN_WIDTH, CHAR_HEIGHT, WHITE);
   }
   snprintf(msg, NB_CHARS, "Seuil : %lf", seuil);
-  drawTextAt(0, 6, msg, WHITE);
+  drawTextAt(0, 6, msg, color);
 }
 
 void changeCapteurIfNecessary()
@@ -228,27 +264,26 @@ void changeSeuilValueIfNecessary()
 {
   if (ReturnDirection() == 0)
   {
+    Serial.println("Baisse du seuil");
     capteurs[currentCapteurIndex].seuil -= 0.1;
     // refresh seuil on screen
-    printSeuil(capteurs[currentCapteurIndex].seuil);
+    printSeuil(capteurs[currentCapteurIndex].seuil, BLACK);
   }
   if (ReturnDirection() == 2)
   {
+    Serial.println("Augmentation du seuil");
     capteurs[currentCapteurIndex].seuil += 0.1;
     // refresh seuil on screen
-    printSeuil(capteurs[currentCapteurIndex].seuil);
+    printSeuil(capteurs[currentCapteurIndex].seuil, BLACK);
   }
 }
 
 void flashSeuil()
 {
-  static bool isSeuilWhite = false;
-  if (millis() % 1000 < 500)
+  int last = 0;
+  if (millis() - last > 500)
   {
-    printSeuil(capteurs[currentCapteurIndex].seuil, WHITE);
-  }
-  else
-  {
+    last = millis();
     printSeuil(capteurs[currentCapteurIndex].seuil, BLACK);
   }
 }
