@@ -2,8 +2,6 @@
 #include "wifi_mqtt/wifi_mqtt.h"
 #ifdef IHM
 #include "joystick/joystick.h"
-#endif
-#ifdef OLED
 #include "afficheur/afficheur.h"
 #endif
 
@@ -41,22 +39,17 @@ void clearMsg(char* msg, int start = 0, int size = MSG_BUFFER_SIZE);
 
 void setup() {
   Serial.begin(115200);
-
-  uint16_t time = millis();
-  time = millis() - time;
-  delay(500);
-
-  setup_wifi();
-  setup_mqtt(callback);
   #ifdef IHM
   setupJoystick();
-  // setupCapteursList(capteurs);
+  setupCapteursList(capteurs);
   Serial.println("Aucun capteur connecté");
   #ifdef OLED
   setupTFT();
-  drawTextAt(0, 0, "No connected captors", WHITE);
+  drawTextAt(0, 0, "No connected sensors", WHITE);
   #endif
   #endif
+  setup_wifi();
+  setup_mqtt(callback);
 }
 
 void loop() {
@@ -85,7 +78,7 @@ void loop() {
       Serial.println("Capteur désélectionné !");
       clearMsg(msg);
       snprintf(msg, NB_CHARS, "%f", capteurs[currentCapteurIndex].seuil);
-      char topic[MSG_BUFFER_SIZE] = "/YNOV_BDX/Projet_IoT/Capteurs/";
+      char topic[MSG_BUFFER_SIZE] = "/YNOV_BDX/Projet_IoT/Actionneurs/";
       strcat(topic, capteurs[currentCapteurIndex].name);
       strcat(topic, "/seuil");
       client.publish(topic, msg);
@@ -103,7 +96,6 @@ void loop() {
     clearLine(9);
     clearLine(10);
   }
-  delay(100);
   #endif
 }
 
@@ -122,10 +114,10 @@ void callback(char *topic, byte *payload, unsigned int length)
   if (strstr(topic, "/YNOV_BDX/Projet_IoT/Capteurs/") != NULL && strstr(topic, "/mesure") != NULL)
   {
     char *capteurName = strstr(topic, "/YNOV_BDX/Projet_IoT/Capteurs/") + 30;
-    strcpy(capteurName, strtok(capteurName, "/")); // remove what's after the captor name
+    strcpy(capteurName, strtok(capteurName, "/")); // remove what's after the sensor name
     char *temperature = (char *)payload;
     char *humidity = (char *)payload + 5;
-    // Check if captor already exists
+    // Check if sensor already exists
     bool capteurExists = false;
     for (int i = 0; i < nbCapteurs; i++)
     {
@@ -137,7 +129,7 @@ void callback(char *topic, byte *payload, unsigned int length)
         capteurExists = true;
       }
     }
-    // Add captor if it doesn't exist
+    // Add sensor if it doesn't exist
     if (!capteurExists)
     {
       addCapteur(capteurName, atof(temperature), atof(humidity));
@@ -208,7 +200,6 @@ void printCapteur(CapteurData capteur)
   Serial.println(capteur.humidity);
   // Remove previous capteur on screen
   tft.fillScreen(BLACK);
-  delay(250);
   // Print capteur on screen
   drawTextAt(0, 0, capteur.name, WHITE);
   clearMsg(msg);
@@ -234,7 +225,7 @@ void printSeuil(float seuil, uint16_t color = WHITE)
   {
     tft.fillRect(0, 6 * CHAR_HEIGHT, SCREEN_WIDTH, CHAR_HEIGHT, WHITE);
   }
-  snprintf(msg, NB_CHARS, "Seuil : %lf", seuil);
+  snprintf(msg, NB_CHARS, "Seuil : %f", seuil);
   drawTextAt(0, 6, msg, color);
 }
 

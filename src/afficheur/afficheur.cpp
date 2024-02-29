@@ -6,7 +6,7 @@ Adafruit_SSD1351 tft = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, CS_PIN, DC_
 
 void setupTFT()
 {
-  tft.begin();
+  tft.begin(12 * 1000000);
   tft.fillScreen(BLACK);
   tft.setCursor(0, 0);
   tft.setTextColor(WHITE);
