@@ -9,21 +9,17 @@
   LCD.begin(LCD_COLUMNS, LCD_ROWS);
   LCD.clear();
   LCD.setCursor(0, 0);
-  LCD.print("<");
-  LCD.setCursor(4, 0);
-  LCD.print("Capteur1");
-  LCD.setCursor(15, 0);
-  LCD.print(">");
-  LCD.setCursor(0, 1);
-  LCD.print("T:  C   H:  %");
+  LCD.print("Bienvenue");
+
   }
 
-  void displayMessage(const char* message) {
-
-  LCD.setCursor(0,0);
-  LCD.print(message);
-
-        }
+void displayMessage(const char* message1, const char* message2) {
+  LCD.setCursor(0, 0);
+  LCD.print(message1);
+  
+  LCD.setCursor(0, 1);
+  LCD.print(message2);
+}
 #endif
 #ifdef OLED
 void setupTFT(Adafruit_SSD1351 tft)

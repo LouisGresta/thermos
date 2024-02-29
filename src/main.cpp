@@ -2,6 +2,7 @@
 #include "wifi_mqtt/wifi_mqtt.h"
 #ifdef IHM        
 #include "afficheur/afficheur.h"
+#include "joystick/joystick.h"
 #endif
 
 extern PubSubClient client;
@@ -18,6 +19,8 @@ void callback(char *topic, byte *payload, unsigned int length);
 void setup() {
   Serial.begin(115200);
   setupLCD();
+  setupJoystick();
+  delay(2000);
 
   uint16_t time = millis();
   time = millis() - time;
@@ -76,7 +79,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     digitalWrite(LED_BUILTIN, HIGH); // Turn the LED off by making the voltage HIGH
   }
   #ifdef IHM
-    Serial.println("Hello");
+    //Serial.println("Hello");
     displayMessage("Bonjour");
   #endif
 }
