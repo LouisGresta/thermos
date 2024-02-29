@@ -35,6 +35,11 @@ int compareTopicsSens(const char* topic) {
     }
 }
 
+void setupLed()
+{
+    pinMode(LedMoteur, OUTPUT);
+}
+
 //Pour la led
 void MoteurLed(int flag, String data)
 {
@@ -47,12 +52,12 @@ void MoteurLed(int flag, String data)
         if (data == "true") 
         {
             Serial.println("LED");
-            //digitalWrite(LED, HIGH);
+            //digitalWrite(LedMoteur, HIGH);
         }
         else 
         {
-            //digitalWrite(LED, LOW);
             Serial.println("LED Non");
+            //digitalWrite(LedMoteur, LOW);
         }
     }
 }
@@ -68,11 +73,9 @@ void MoteurMode(int flag, String data)
         if (data == "true") 
         {
             Serial.println("Mode Auto");
-            //digitalWrite(LED, HIGH);
         }
         else 
         {
-            //digitalWrite(LED, LOW);
             Serial.println("Mode Manu");
         }
     }
@@ -89,11 +92,9 @@ void MoteurSens(int flag, String data)
         if (data == "true") 
         {
             Serial.println("sens normal");
-            //digitalWrite(LED, HIGH);
         }
         else 
         {
-            //digitalWrite(LED, LOW);
             Serial.println("sens inverse");
         }
     }

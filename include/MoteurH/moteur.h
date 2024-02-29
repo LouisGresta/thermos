@@ -1,11 +1,14 @@
 #include <Arduino.h>
 
+#define LedMoteur 8
+
 #define Topic_Led_Mqtt "/YNOV_BDX/led"
 #define Topic_Mod_Mqtt "/YNOV_BDX/mode"
 #define Topic_Sens_Mqtt "/YNOV_BDX/sens"
 
 int compareTopicsM(const char* topic);
 void MoteurLed(int flag, String data);
+void setupLed();
 
 int compareTopicsMod(const char* topic);
 void MoteurMode(int flag, String data);

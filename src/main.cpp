@@ -35,8 +35,10 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length)
   Serial.println("message reçu : "+ DataMqtt);
 
   /*******Servo-moteur************/
-  int flag = compareTopics(topic, Topic_Hum_MQTT);
-  pos = SetservoMoteur(flag, DataMqtt, &monServo);
+  //int flag = compareTopics(topic, Topic_Hum_MQTT);
+  int flagTempSeuil = compareTopicsSeuilTemp(topic);
+
+  pos = SetservoMoteur(flagTempSeuil, DataMqtt, &monServo);
 
   /***Pour la led******/
   int flagLed = compareTopicsM(topic);

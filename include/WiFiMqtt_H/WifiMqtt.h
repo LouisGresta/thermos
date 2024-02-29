@@ -13,8 +13,8 @@
 #define IDClient_MQTT "TestClient-" //Id client de MQTT unique
 
 /******Les Topic du MQTT*********/
-#define Topic_Hum_MQTT "/YNOV_BDX/Dh11-Hum"
-#define Topic_Temp_MQTT "/YNOV_BDX/Dh11-Temp"
+#define Topic_Hum_MQTT "/YNOV_BDX/Projet_IoT/Capteurs/SOUKO2"
+#define Topic_Temp_MQTT "/YNOV_BDX/Projet_IoT/Capteurs/SOUKO1"
 
 #define Topic_Serv_MQTT "/YNOV_BDX/servo"
 #define Topic_Led_Mqtt "/YNOV_BDX/led"
